@@ -44,16 +44,20 @@ class SemaphoreApiClient {
       final data = json.decode(response.body);
       
       // API returns an array, get the first message
-      if (data is List && data.isNotEmpty) {
-        return SemaphoreSmsResponse.fromJson(data[0] as Map<String, dynamic>);
-      } else if (data is Map) {
-        return SemaphoreSmsResponse.fromJson(data as Map<String, dynamic>);
-      } else {
-        throw SemaphoreApiException(
-          'Unexpected response format',
-          response.body,
-        );
+      try {
+        if (data is List && data.isNotEmpty) {
+          return SemaphoreSmsResponse.fromJson(data[0] as Map<String, dynamic>);
+        } else if (data is Map) {
+          return SemaphoreSmsResponse.fromJson(data as Map<String, dynamic>);
+        }
+      } on FormatException catch (e) {
+        throw SemaphoreApiException('Failed to parse response: ${e.message}', response.body);
       }
+
+      throw SemaphoreApiException(
+        'Unexpected response format',
+        response.body,
+      );
     } else {
       throw SemaphoreApiException(
         'Failed to send message: ${response.statusCode}',
@@ -97,15 +101,19 @@ class SemaphoreApiClient {
       final data = json.decode(response.body);
       
       if (data is List) {
-        return data
-            .map((item) => SemaphoreSmsResponse.fromJson(item as Map<String, dynamic>))
-            .toList();
-      } else {
-        throw SemaphoreApiException(
-          'Unexpected response format',
-          response.body,
-        );
+        try {
+          return data
+              .map((item) => SemaphoreSmsResponse.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } on FormatException catch (e) {
+          throw SemaphoreApiException('Failed to parse response: ${e.message}', response.body);
+        }
       }
+
+      throw SemaphoreApiException(
+        'Unexpected response format',
+        response.body,
+      );
     } else {
       throw SemaphoreApiException(
         'Failed to send bulk messages: ${response.statusCode}',
@@ -136,16 +144,20 @@ class SemaphoreApiClient {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       
-      if (data is List && data.isNotEmpty) {
-        return SemaphoreSmsResponse.fromJson(data[0] as Map<String, dynamic>);
-      } else if (data is Map) {
-        return SemaphoreSmsResponse.fromJson(data as Map<String, dynamic>);
-      } else {
-        throw SemaphoreApiException(
-          'Unexpected response format',
-          response.body,
-        );
+      try {
+        if (data is List && data.isNotEmpty) {
+          return SemaphoreSmsResponse.fromJson(data[0] as Map<String, dynamic>);
+        } else if (data is Map) {
+          return SemaphoreSmsResponse.fromJson(data as Map<String, dynamic>);
+        }
+      } on FormatException catch (e) {
+        throw SemaphoreApiException('Failed to parse response: ${e.message}', response.body);
       }
+
+      throw SemaphoreApiException(
+        'Unexpected response format',
+        response.body,
+      );
     } else {
       throw SemaphoreApiException(
         'Failed to send priority message: ${response.statusCode}',
@@ -180,16 +192,20 @@ class SemaphoreApiClient {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       
-      if (data is List && data.isNotEmpty) {
-        return SemaphoreOtpResponse.fromJson(data[0] as Map<String, dynamic>);
-      } else if (data is Map) {
-        return SemaphoreOtpResponse.fromJson(data as Map<String, dynamic>);
-      } else {
-        throw SemaphoreApiException(
-          'Unexpected response format',
-          response.body,
-        );
+      try {
+        if (data is List && data.isNotEmpty) {
+          return SemaphoreOtpResponse.fromJson(data[0] as Map<String, dynamic>);
+        } else if (data is Map) {
+          return SemaphoreOtpResponse.fromJson(data as Map<String, dynamic>);
+        }
+      } on FormatException catch (e) {
+        throw SemaphoreApiException('Failed to parse response: ${e.message}', response.body);
       }
+
+      throw SemaphoreApiException(
+        'Unexpected response format',
+        response.body,
+      );
     } else {
       throw SemaphoreApiException(
         'Failed to send OTP message: ${response.statusCode}',
@@ -205,8 +221,12 @@ class SemaphoreApiClient {
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      return SemaphoreAccount.fromJson(data);
+      try {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        return SemaphoreAccount.fromJson(data);
+      } on FormatException catch (e) {
+        throw SemaphoreApiException('Failed to parse response: ${e.message}', response.body);
+      }
     } else {
       throw SemaphoreApiException(
         'Failed to get account: ${response.statusCode}',
@@ -222,8 +242,12 @@ class SemaphoreApiClient {
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      return SemaphoreSmsResponse.fromJson(data);
+      try {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        return SemaphoreSmsResponse.fromJson(data);
+      } on FormatException catch (e) {
+        throw SemaphoreApiException('Failed to parse response: ${e.message}', response.body);
+      }
     } else {
       throw SemaphoreApiException(
         'Failed to get message: ${response.statusCode}',
@@ -274,20 +298,20 @@ class SemaphoreSmsResponse {
 
   factory SemaphoreSmsResponse.fromJson(Map<String, dynamic> json) {
     return SemaphoreSmsResponse(
-      messageId: json['message_id'] as int,
-      userId: json['user_id'] as int,
-      user: json['user'] as String,
-      accountId: json['account_id'] as int,
-      account: json['account'] as String,
-      recipient: json['recipient'] as String,
-      message: json['message'] as String,
-      senderName: json['sender_name'] as String,
-      network: json['network'] as String,
-      status: json['status'] as String,
-      type: json['type'] as String,
-      source: json['source'] as String,
-      createdAt: json['created_at'] as String,
-      updatedAt: json['updated_at'] as String,
+      messageId: _parseInt(json['message_id'], field: 'message_id'),
+      userId: _parseInt(json['user_id'], field: 'user_id'),
+      user: _parseString(json, 'user'),
+      accountId: _parseInt(json['account_id'], field: 'account_id'),
+      account: _parseString(json, 'account'),
+      recipient: _parseString(json, 'recipient'),
+      message: _parseString(json, 'message'),
+      senderName: _parseString(json, 'sender_name', fallbackKey: 'sendername'),
+      network: _parseString(json, 'network'),
+      status: _parseString(json, 'status'),
+      type: _parseString(json, 'type'),
+      source: _parseString(json, 'source'),
+      createdAt: _parseString(json, 'created_at'),
+      updatedAt: _parseString(json, 'updated_at'),
     );
   }
 
@@ -335,21 +359,21 @@ class SemaphoreOtpResponse extends SemaphoreSmsResponse {
 
   factory SemaphoreOtpResponse.fromJson(Map<String, dynamic> json) {
     return SemaphoreOtpResponse(
-      messageId: json['message_id'] as int,
-      userId: json['user_id'] as int,
-      user: json['user'] as String,
-      accountId: json['account_id'] as int,
-      account: json['account'] as String,
-      recipient: json['recipient'] as String,
-      message: json['message'] as String,
-      senderName: json['sender_name'] as String,
-      network: json['network'] as String,
-      status: json['status'] as String,
-      type: json['type'] as String,
-      source: json['source'] as String,
-      createdAt: json['created_at'] as String,
-      updatedAt: json['updated_at'] as String,
-      code: json['code'].toString(),
+      messageId: _parseInt(json['message_id'], field: 'message_id'),
+      userId: _parseInt(json['user_id'], field: 'user_id'),
+      user: _parseString(json, 'user'),
+      accountId: _parseInt(json['account_id'], field: 'account_id'),
+      account: _parseString(json, 'account'),
+      recipient: _parseString(json, 'recipient'),
+      message: _parseString(json, 'message'),
+      senderName: _parseString(json, 'sender_name', fallbackKey: 'sendername'),
+      network: _parseString(json, 'network'),
+      status: _parseString(json, 'status'),
+      type: _parseString(json, 'type'),
+      source: _parseString(json, 'source'),
+      createdAt: _parseString(json, 'created_at'),
+      updatedAt: _parseString(json, 'updated_at'),
+      code: json['code']?.toString() ?? '',
     );
   }
 
@@ -377,10 +401,10 @@ class SemaphoreAccount {
 
   factory SemaphoreAccount.fromJson(Map<String, dynamic> json) {
     return SemaphoreAccount(
-      accountId: json['account_id'] as int,
-      accountName: json['account_name'] as String,
-      status: json['status'] as String,
-      creditBalance: (json['credit_balance'] as num).toDouble(),
+      accountId: _parseInt(json['account_id'], field: 'account_id'),
+      accountName: _parseString(json, 'account_name'),
+      status: _parseString(json, 'status'),
+      creditBalance: _parseDouble(json['credit_balance'], field: 'credit_balance'),
     );
   }
 
@@ -392,6 +416,40 @@ class SemaphoreAccount {
       'credit_balance': creditBalance,
     };
   }
+}
+
+int _parseInt(dynamic value, {required String field}) {
+  if (value is int) {
+    return value;
+  }
+  if (value is String) {
+    final parsed = int.tryParse(value);
+    if (parsed != null) {
+      return parsed;
+    }
+  }
+  throw FormatException('Invalid integer value for $field: $value');
+}
+
+double _parseDouble(dynamic value, {required String field}) {
+  if (value is num) {
+    return value.toDouble();
+  }
+  if (value is String) {
+    final parsed = double.tryParse(value);
+    if (parsed != null) {
+      return parsed;
+    }
+  }
+  throw FormatException('Invalid numeric value for $field: $value');
+}
+
+String _parseString(Map<String, dynamic> json, String key, {String? fallbackKey}) {
+  final value = json[key] ?? (fallbackKey != null ? json[fallbackKey] : null);
+  if (value == null) {
+    throw FormatException('Missing required field $key');
+  }
+  return value.toString();
 }
 
 /// Exception thrown by Semaphore API

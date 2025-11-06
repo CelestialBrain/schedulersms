@@ -22,6 +22,9 @@ class ScheduledSMS {
   /// Message content
   final String message;
 
+  /// Optional sender name/ID that should appear on the SMS
+  final String? senderName;
+
   /// Scheduled date and time for sending
   final DateTime scheduledDate;
 
@@ -58,6 +61,7 @@ class ScheduledSMS {
     this.customerName,
     required this.recipient,
     required this.message,
+    this.senderName,
     required this.scheduledDate,
     this.active = true,
     this.status = SmsStatus.pending,
@@ -77,6 +81,7 @@ class ScheduledSMS {
     String? customerName,
     String? recipient,
     String? message,
+    String? senderName,
     DateTime? scheduledDate,
     bool? active,
     SmsStatus? status,
@@ -94,6 +99,7 @@ class ScheduledSMS {
       customerName: customerName ?? this.customerName,
       recipient: recipient ?? this.recipient,
       message: message ?? this.message,
+      senderName: senderName ?? this.senderName,
       scheduledDate: scheduledDate ?? this.scheduledDate,
       active: active ?? this.active,
       status: status ?? this.status,
@@ -140,6 +146,10 @@ class ScheduledSMS {
       map['customerName'] = customerName;
     }
 
+    if (senderName != null) {
+      map['senderName'] = senderName;
+    }
+
     return map;
   }
 
@@ -153,6 +163,7 @@ class ScheduledSMS {
       customerName: map['customerName'] as String?,
       recipient: map['recipient'] as String,
       message: map['message'] as String,
+      senderName: map['senderName'] as String?,
       scheduledDate: DateTime.parse(map['scheduledDate'] as String),
       active: map['active'] is int
           ? (map['active'] as int) == 1
@@ -183,6 +194,6 @@ class ScheduledSMS {
 
   @override
   String toString() {
-    return 'ScheduledSMS(id: $id, customer: $customerName, recipient: $recipient, scheduledDate: $scheduledDate, active: $active, status: $status)';
+    return 'ScheduledSMS(id: $id, customer: $customerName, recipient: $recipient, sender: $senderName, scheduledDate: $scheduledDate, active: $active, status: $status)';
   }
 }

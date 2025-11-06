@@ -35,7 +35,7 @@ class SmsDatabase {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -59,7 +59,8 @@ class SmsDatabase {
         errorMessage TEXT,
         retryCount INTEGER NOT NULL DEFAULT 0,
         tags TEXT,
-        priority INTEGER NOT NULL DEFAULT 3
+        priority INTEGER NOT NULL DEFAULT 3,
+        senderName TEXT
       )
     ''');
 
@@ -90,6 +91,12 @@ class SmsDatabase {
       );
       await db.execute(
         "ALTER TABLE scheduled_sms ADD COLUMN priority INTEGER NOT NULL DEFAULT 3",
+      );
+    }
+
+    if (oldVersion < 3) {
+      await db.execute(
+        "ALTER TABLE scheduled_sms ADD COLUMN senderName TEXT",
       );
     }
   }
