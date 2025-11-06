@@ -33,7 +33,7 @@ class CustomerDatabase {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -71,6 +71,12 @@ class CustomerDatabase {
     // Customer table was added in version 2
     if (oldVersion < 2) {
       await _onCreate(db, newVersion);
+    }
+
+    if (oldVersion < 3) {
+      // No schema changes for version 3. This block ensures the database
+      // version stays aligned with [SmsDatabase] when both are opened
+      // separately.
     }
   }
 

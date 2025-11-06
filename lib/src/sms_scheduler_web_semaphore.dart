@@ -21,6 +21,8 @@ class SmsSchedulerWebSemaphore {
   final SmsLogger _logger = SmsLogger();
   final _uuid = const Uuid();
   late final SemaphoreApiClient _semaphoreClient;
+  late String _senderName;
+  late bool _usePriorityQueue;
 
   /// Stream controller for SMS status updates
   final _statusController = StreamController<ScheduledSMS>.broadcast();
@@ -36,15 +38,26 @@ class SmsSchedulerWebSemaphore {
   Stream<ScheduledSMS> get statusStream => _statusController.stream;
 
   /// Initialize the web SMS scheduler with Semaphore API
+  ///
+  /// [customApiKey] can be provided to override the default key stored in
+  /// [SemaphoreConfig].
+  /// [senderName] overrides the default sender that will appear on outgoing
+  /// messages.
+  /// [usePriorityQueue] toggles Semaphore's priority queue for all messages
+  /// (individual high-priority messages will still use the priority queue
+  /// automatically).
   Future<void> initialize({
     String? customApiKey,
     String? senderName,
+    bool? usePriorityQueue,
   }) async {
     _logger.info('Initializing SMS Scheduler for Web with Semaphore API');
-    
+
     // Initialize Semaphore client with API key
     final apiKey = customApiKey ?? SemaphoreConfig.apiKey;
     _semaphoreClient = SemaphoreApiClient(apiKey: apiKey);
+    _senderName = senderName ?? SemaphoreConfig.defaultSenderName;
+    _usePriorityQueue = usePriorityQueue ?? SemaphoreConfig.usePriorityQueue;
 
     try {
       // Verify API key by getting account info
@@ -55,6 +68,8 @@ class SmsSchedulerWebSemaphore {
           'account': account.accountName,
           'balance': account.creditBalance,
           'status': account.status,
+          'defaultSender': _senderName,
+          'priorityQueue': _usePriorityQueue,
         },
       );
     } catch (e, stackTrace) {
@@ -96,6 +111,7 @@ class SmsSchedulerWebSemaphore {
     bool active = true,
     List<String> tags = const [],
     int priority = 3,
+    /// Optional sender name override for this scheduled SMS.
     String? senderName,
   }) async {
     _logger.logSchedule(
@@ -112,6 +128,7 @@ class SmsSchedulerWebSemaphore {
       customerName: customer.name,
       recipient: customer.phoneNumber,
       message: message,
+      senderName: senderName ?? _senderName,
       scheduledDate: scheduledDate,
       active: active,
       status: SmsStatus.pending,
@@ -168,19 +185,22 @@ class SmsSchedulerWebSemaphore {
       // Send SMS using Semaphore API
       SemaphoreSmsResponse response;
       
-      if (SemaphoreConfig.usePriorityQueue || sms.priority >= 4) {
+      final resolvedSenderName = sms.senderName ?? _senderName;
+      final usePriority = _usePriorityQueue || sms.priority >= 4;
+
+      if (usePriority) {
         // Use priority queue for high-priority messages
         response = await _semaphoreClient.sendPriorityMessage(
           number: sms.recipient,
           message: sms.message,
-          senderName: SemaphoreConfig.defaultSenderName,
+          senderName: resolvedSenderName,
         );
       } else {
         // Use regular queue
         response = await _semaphoreClient.sendMessage(
           number: sms.recipient,
           message: sms.message,
-          senderName: SemaphoreConfig.defaultSenderName,
+          senderName: resolvedSenderName,
         );
       }
 
@@ -210,6 +230,8 @@ class SmsSchedulerWebSemaphore {
           'messageId': response.messageId,
           'network': response.network,
           'status': response.status,
+          'senderName': resolvedSenderName,
+          'priorityQueue': usePriority,
         },
       );
     } catch (e, stackTrace) {
@@ -256,9 +278,10 @@ class SmsSchedulerWebSemaphore {
     bool? active,
     List<String>? tags,
     int? priority,
+    String? senderName,
   }) async {
     final existingSms = await _database.getScheduledSms(id);
-    
+
     if (existingSms == null) {
       throw ArgumentError('Scheduled SMS not found');
     }
@@ -269,6 +292,7 @@ class SmsSchedulerWebSemaphore {
       active: active,
       tags: tags,
       priority: priority,
+      senderName: senderName ?? existingSms.senderName,
       updatedAt: DateTime.now(),
     );
 
