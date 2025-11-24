@@ -25,6 +25,11 @@ import 'package:schedulersms/schedulersms.dart';
 ///   - Override with environment variable: SEMAPHORE_API_KEY=your-key
 ///   - Example: SEMAPHORE_API_KEY=abc123 dart run example/semaphore_live_test.dart
 
+/// **TEST-ONLY API KEY**
+/// This key is provided for demonstration and testing purposes only.
+/// DO NOT use this pattern in production code.
+const String _defaultTestApiKey = '1fd72138299086e8fc5656a9826ac7e9';
+
 void main(List<String> args) async {
   print('='.repeat(70));
   print('Semaphore SMS Live Test');
@@ -32,12 +37,9 @@ void main(List<String> args) async {
   print('');
 
   // Get API key from environment or use default test key
-  // ⚠️ UNSAFE FOR PRODUCTION: Default key is included for testing convenience
-  // This pattern should NOT be used in production or committed to public repos
-  final apiKey = Platform.environment['SEMAPHORE_API_KEY'] ??
-      '1fd72138299086e8fc5656a9826ac7e9';
+  final apiKey = Platform.environment['SEMAPHORE_API_KEY'] ?? _defaultTestApiKey;
 
-  if (apiKey == '1fd72138299086e8fc5656a9826ac7e9') {
+  if (apiKey == _defaultTestApiKey) {
     print('⚠️  Using default test API key (TESTING ONLY)');
     print('   This is for demonstration purposes.');
     print('   To use your own key, set: SEMAPHORE_API_KEY=your-key');

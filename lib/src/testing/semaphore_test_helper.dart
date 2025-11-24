@@ -175,10 +175,19 @@ class SemaphoreTestHelper {
   /// Dispose resources when done testing
   ///
   /// Safe to call even if initialize() was never called or failed.
+  /// Can be called multiple times safely.
   void dispose() {
     if (_initialized) {
-      _scheduler?.dispose();
-      _apiClient?.dispose();
+      try {
+        _scheduler?.dispose();
+      } catch (e) {
+        // Ignore errors during scheduler disposal
+      }
+      try {
+        _apiClient?.dispose();
+      } catch (e) {
+        // Ignore errors during API client disposal
+      }
       _initialized = false;
     }
   }
@@ -195,6 +204,10 @@ class SemaphoreTestHelper {
 }
 
 /// Result of a test SMS send operation
+///
+/// This is a simplified wrapper around SemaphoreSmsResponse designed for
+/// easy consumption by end users. It extracts only the most relevant fields
+/// for testing and verification purposes.
 class TestSmsResult {
   /// Semaphore message ID
   final String messageId;

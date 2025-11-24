@@ -78,6 +78,11 @@ import 'package:schedulersms/schedulersms.dart';
 The implementation follows the user's requirements:
 
 1. **Default Test Key**: The provided API key `1fd72138299086e8fc5656a9826ac7e9` is used by default in `example/semaphore_live_test.dart`
+   - **Note**: This is a REAL, ACTIVE API key provided by the user specifically for testing
+   - It is associated with a live Semaphore account
+   - Using it will consume actual SMS credits
+   - It should be treated as a demonstration key with limited credits available
+   - The user explicitly requested this key be included for convenience during testing
 
 2. **Environment Override**: Users can set `SEMAPHORE_API_KEY` environment variable to use their own key
 

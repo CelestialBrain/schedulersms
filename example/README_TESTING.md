@@ -35,6 +35,10 @@ The test script accepts the API key in two ways:
 
 2. **Default Test Key**: 
    If no environment variable is set, uses `1fd72138299086e8fc5656a9826ac7e9`
+   - This is a **REAL, ACTIVE** Semaphore API key provided for testing
+   - It will consume actual SMS credits when used
+   - It is intended for demonstration and verification purposes only
+   - Limited credits may be available on this shared test account
 
 **SECURITY NOTE**: The default key is for convenience during testing only. For production:
 - Always use environment variables or secure storage
