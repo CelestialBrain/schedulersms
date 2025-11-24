@@ -30,8 +30,9 @@ import '../models/scheduled_sms.dart';
 class SemaphoreTestHelper {
   final String apiKey;
   final String senderName;
-  late SchedulerSmsWebSemaphore _scheduler;
-  late SemaphoreApiClient _apiClient;
+  SchedulerSmsWebSemaphore? _scheduler;
+  SemaphoreApiClient? _apiClient;
+  bool _initialized = false;
 
   /// Create a new test helper with the given API key
   ///
@@ -48,11 +49,12 @@ class SemaphoreTestHelper {
   /// It verifies the API key is valid by fetching account information.
   Future<void> initialize() async {
     _scheduler = SchedulerSmsWebSemaphore();
-    await _scheduler.initialize(
+    await _scheduler!.initialize(
       apiKey: apiKey,
       senderName: senderName,
     );
     _apiClient = SemaphoreApiClient(apiKey: apiKey);
+    _initialized = true;
   }
 
   /// Get account information including credit balance
@@ -67,7 +69,8 @@ class SemaphoreTestHelper {
   /// print('Status: ${account.status}');
   /// ```
   Future<SemaphoreAccount> getAccountInfo() async {
-    return await _scheduler.getAccountInfo();
+    _ensureInitialized();
+    return await _scheduler!.getAccountInfo();
   }
 
   /// Get the current credit balance
@@ -107,7 +110,8 @@ class SemaphoreTestHelper {
     required String message,
     String? senderName,
   }) async {
-    final response = await _apiClient.sendMessage(
+    _ensureInitialized();
+    final response = await _apiClient!.sendMessage(
       number: phoneNumber,
       message: message,
       senderName: senderName ?? this.senderName,
@@ -150,17 +154,18 @@ class SemaphoreTestHelper {
     required DateTime scheduledDate,
     String? customerName,
   }) async {
+    _ensureInitialized();
     // Find or create customer
-    Customer? customer = await _scheduler.getCustomerByPhone(phoneNumber);
+    Customer? customer = await _scheduler!.getCustomerByPhone(phoneNumber);
     if (customer == null) {
-      customer = await _scheduler.createCustomer(
+      customer = await _scheduler!.createCustomer(
         name: customerName ?? 'Test Customer $phoneNumber',
         phoneNumber: phoneNumber,
       );
     }
 
     // Schedule the SMS
-    return await _scheduler.scheduleSms(
+    return await _scheduler!.scheduleSms(
       customer: customer,
       message: message,
       scheduledDate: scheduledDate,
@@ -168,9 +173,24 @@ class SemaphoreTestHelper {
   }
 
   /// Dispose resources when done testing
+  ///
+  /// Safe to call even if initialize() was never called or failed.
   void dispose() {
-    _scheduler.dispose();
-    _apiClient.dispose();
+    if (_initialized) {
+      _scheduler?.dispose();
+      _apiClient?.dispose();
+      _initialized = false;
+    }
+  }
+
+  /// Ensure the helper has been initialized before use
+  void _ensureInitialized() {
+    if (!_initialized) {
+      throw StateError(
+        'SemaphoreTestHelper must be initialized before use. '
+        'Call initialize() first.',
+      );
+    }
   }
 }
 

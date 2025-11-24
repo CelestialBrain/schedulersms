@@ -3,6 +3,16 @@ import 'package:schedulersms/schedulersms.dart';
 
 /// Live Testing Script for Semaphore SMS Integration
 ///
+/// **⚠️ SECURITY WARNING ⚠️**
+/// This script contains a hardcoded API key for TESTING PURPOSES ONLY.
+/// This is intentional per the project requirements to enable quick testing,
+/// but should NEVER be used as a pattern in production code.
+///
+/// For production applications:
+/// - ALWAYS use environment variables or secure secret management
+/// - NEVER commit API keys to version control
+/// - Rotate keys regularly
+///
 /// **WARNING**: This script will connect to the real Semaphore API and
 /// may consume SMS credits when sending test messages.
 ///
@@ -11,12 +21,9 @@ import 'package:schedulersms/schedulersms.dart';
 ///   dart run example/semaphore_live_test.dart 09171234567        # Send test SMS
 ///
 /// API Key Configuration:
-///   - By default, uses the test API key hardcoded below
+///   - By default, uses the test API key hardcoded below for convenience
 ///   - Override with environment variable: SEMAPHORE_API_KEY=your-key
-///
-/// **SECURITY WARNING**: The default API key below is for TESTING ONLY.
-/// Do NOT use this pattern in production or public repositories.
-/// For production apps, always use environment variables or secure storage.
+///   - Example: SEMAPHORE_API_KEY=abc123 dart run example/semaphore_live_test.dart
 
 void main(List<String> args) async {
   print('='.repeat(70));
@@ -25,13 +32,14 @@ void main(List<String> args) async {
   print('');
 
   // Get API key from environment or use default test key
-  // **UNSAFE**: Default key is included for convenience but should NOT
-  // be used in production or committed to public repositories
+  // ⚠️ UNSAFE FOR PRODUCTION: Default key is included for testing convenience
+  // This pattern should NOT be used in production or committed to public repos
   final apiKey = Platform.environment['SEMAPHORE_API_KEY'] ??
       '1fd72138299086e8fc5656a9826ac7e9';
 
   if (apiKey == '1fd72138299086e8fc5656a9826ac7e9') {
-    print('⚠️  Using default test API key');
+    print('⚠️  Using default test API key (TESTING ONLY)');
+    print('   This is for demonstration purposes.');
     print('   To use your own key, set: SEMAPHORE_API_KEY=your-key');
     print('');
   } else {
